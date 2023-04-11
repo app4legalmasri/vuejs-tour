@@ -33,7 +33,7 @@ This section will guide you through the process of installing VueJS Tour.
 
 ```bash
 cd my-project
-npm install @globalhive/vuejs-tour
+npm install @app4legalmasri/vuejs-tour
 ```
 
 * Step 2: Import the plugin in your application entry point (typically `main.js`):
