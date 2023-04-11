@@ -5,9 +5,19 @@
     </slot>
     <slot name="actions" v-bind="{ endTour, nextStep, prevStep }">
       <div class="vjt-actions">
-        <button type="button" @click.prevent="endTour">Skip</button>
-        <button v-if="step.currentStep > 0" type="button" @click.prevent="prevStep">Back</button>
-        <button type="button" v-text="getNextText" @click.prevent="nextStep"></button>
+        <button type="button" @click.prevent="endTour">{{ SkipLable }}</button>
+        <button
+          v-if="step.currentStep > 0"
+          type="button"
+          @click.prevent="prevStep"
+        >
+          {{ BackLable }}
+        </button>
+        <button
+          type="button"
+          v-text="getNextText"
+          @click.prevent="nextStep"
+        ></button>
       </div>
     </slot>
     <div id="vjt-arrow" data-popper-arrow></div>
@@ -34,26 +44,44 @@ const maxSteps = computed(() => {
   return props.steps.length - 1;
 });
 const getNextText = computed(() => {
-  return step.currentStep === maxSteps.value ? "Finish" : "Next";
+  return step.currentStep === maxSteps.value
+    ? props.FinishLable
+    : props.NextLable;
 });
 
 const props = defineProps({
   steps: {
     type: Array,
-    required: true
+    required: true,
   },
   autoStart: {
     type: Boolean,
-    default: false
+    default: false,
   },
   startDelay: {
     type: Number,
-    default: 0
+    default: 0,
   },
   highlight: {
     type: Boolean,
-    default: false
-  }
+    default: false,
+  },
+  NextLable: {
+    type: String,
+    default: "Next",
+  },
+  SkipLable: {
+    type: String,
+    default: "Skip",
+  },
+  BackLable: {
+    type: String,
+    default: "Back",
+  },
+  FinishLable: {
+    type: String,
+    default: "Finish",
+  },
 });
 const emit = defineEmits(["onTourStart", "onTourEnd"]);
 defineExpose({
@@ -61,24 +89,30 @@ defineExpose({
   nextStep,
   prevStep,
   endTour,
-  resetTour
+  resetTour,
 });
 
 async function startTour() {
   if (localStorage.getItem("vjt-tour") === "true") return;
   await setTimeout(() => {
     document.getElementById("vjt-tooltip").removeAttribute("data-hidden");
-    popper.value = createPopper(document.querySelector(`${step.getCurrentStep.target}`), document.getElementById("vjt-tooltip"), {
-      placement: `${step.getCurrentStep.placement ? step.getCurrentStep.placement : "top"}`,
-      modifiers: [
-        {
-          name: "offset",
-          options: {
-            offset: [0, 8]
-          }
-        }
-      ]
-    });
+    popper.value = createPopper(
+      document.querySelector(`${step.getCurrentStep.target}`),
+      document.getElementById("vjt-tooltip"),
+      {
+        placement: `${
+          step.getCurrentStep.placement ? step.getCurrentStep.placement : "top"
+        }`,
+        modifiers: [
+          {
+            name: "offset",
+            options: {
+              offset: [0, 8],
+            },
+          },
+        ],
+      }
+    );
     props.highlight ? highlightTarget() : null;
     emit("onTourStart");
   }, props.startDelay);
@@ -87,14 +121,15 @@ function highlightTarget() {
   let _currentStep = document.querySelector(`${step.getCurrentStep.target}`);
   let _lastStep = document.querySelector(`${step.getLastStep?.target}`);
   _currentStep.classList.add("vjt-highlight");
-  if (_lastStep != null && _currentStep !== _lastStep) _lastStep.classList.remove("vjt-highlight");
+  if (_lastStep != null && _currentStep !== _lastStep)
+    _lastStep.classList.remove("vjt-highlight");
 }
 async function nextStep() {
   if (step.currentStep < maxSteps.value) {
     step.getCurrentStep.onNext ? await step.getCurrentStep.onNext() : null;
     step.lastStep = step.currentStep;
     step.currentStep++;
-    while(document.querySelector(`${step.getCurrentStep.target}`) === null) {
+    while (document.querySelector(`${step.getCurrentStep.target}`) === null) {
       step.currentStep++;
     }
     recalculatePopper();
@@ -107,7 +142,7 @@ async function prevStep() {
     step.getCurrentStep.onPrev ? await step.getCurrentStep.onPrev() : null;
     step.lastStep = step.currentStep;
     step.currentStep--;
-    while(document.querySelector(`${step.getCurrentStep.target}`) === null) {
+    while (document.querySelector(`${step.getCurrentStep.target}`) === null) {
       step.currentStep--;
     }
     recalculatePopper();
@@ -131,13 +166,17 @@ function resetTour() {
 }
 async function recalculatePopper() {
   popper.value.setOptions({
-    placement: `${step.getCurrentStep.placement ? step.getCurrentStep.placement : "top"}`
+    placement: `${
+      step.getCurrentStep.placement ? step.getCurrentStep.placement : "top"
+    }`,
   });
-  popper.value.state.elements.reference = document.querySelector(`${step.getCurrentStep.target}`);
+  popper.value.state.elements.reference = document.querySelector(
+    `${step.getCurrentStep.target}`
+  );
   popper.value.update();
   jump(document.querySelector(`${step.getCurrentStep.target}`), {
     duration: 500,
-    offset: -100
+    offset: -100,
   });
   props.highlight ? highlightTarget() : null;
   step.getCurrentStep.onShow ? await step.getCurrentStep.onShow() : null;
